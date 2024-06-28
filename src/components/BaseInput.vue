@@ -1,7 +1,11 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const props = defineProps<{
+  placeholder: string;
+}>();
+</script>
 
 <template>
-  <input type="text" class="input" placeholder="Введите id или имя" />
+  <input type="text" class="input" :placeholder="props.placeholder" />
 </template>
 
 <style scoped lang="scss">

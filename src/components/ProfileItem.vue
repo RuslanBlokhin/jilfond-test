@@ -1,4 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const props = defineProps<{
+  username: string;
+  email: string;
+}>();
+</script>
 
 <template>
   <li class="profile-item">
@@ -6,17 +11,8 @@
       <img src="../assets/images/bg-small.png" alt="cover" class="profile-item__image" />
     </div>
     <div class="profile-item__info">
-      <h3 class="profile-item__name">Bret</h3>
-      <div class="profile-item__email">Sincere@april.biz</div>
-    </div>
-  </li>
-  <li class="profile-item">
-    <div class="profile-item__image-wrapper">
-      <img src="../assets/images/bg-small.png" alt="caver" class="profile-item__image" />
-    </div>
-    <div class="profile-item__info">
-      <h3 class="profile-item__name">Antonette</h3>
-      <div class="profile-item__email">Shanna@melissa.tv</div>
+      <h3 class="profile-item__name">{{ props.username }}</h3>
+      <div class="profile-item__email">{{ props.email }}</div>
     </div>
   </li>
 </template>
