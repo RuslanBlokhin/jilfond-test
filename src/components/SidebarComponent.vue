@@ -18,43 +18,42 @@ async function searchUsers(evt: Event) {
   console.log(findUsersIds(currentName));
 }
 
-let usersArr = [...users.value];
 function findUsersIds(name: string): number {
-  const interval = 10;
-  let startId = Math.round(usersArr.length / 2) - interval / 2;
-  let endId = Math.round(usersArr.length / 2) + interval / 2;
+  let usersArr = [...users.value];
+  const interval = 4;
 
-  if (usersArr.length <= interval) {
-    startId = 0;
-    endId = usersArr.length;
+  let startId;
+  let endId;
+
+  checkInterval();
+
+  function checkInterval(): number {
+    startId = Math.round(usersArr.length - interval) / 2;
+    endId = Math.round(usersArr.length + interval) / 2;
+
+    if (usersArr.length <= interval) {
+      startId = 0;
+      endId = usersArr.length;
+    }
+
+    for (let i = startId; i < endId; i++) {
+      if (usersArr[i].username.toLowerCase() === name.toLowerCase()) return usersArr[i].id;
+    }
+
+    if (firstLetter.value < usersArr[startId].username[0]) {
+      usersArr.splice(startId);
+
+      checkInterval();
+    } else {
+      usersArr = usersArr.splice(endId);
+
+      checkInterval();
+    }
+    return 0;
   }
 
-  for (let i = startId; i < endId; i++) {
-    if (usersArr[i].username.toLowerCase() === name.toLowerCase()) return usersArr[i].id;
-  }
-
-  if (firstLetter.value < usersArr[startId].username[0]) {
-    usersArr.splice(startId);
-
-    findUsersIds();
-  } else {
-    usersArr = usersArr.splice(endId);
-
-    findUsersIds();
-  }
-
-  return 0;
+  return checkInterval();
 }
-
-// function chekInterval(userArr) {
-//   const interval = 10;
-//   const startId = Math.round(usersArr.length / 2) - interval / 2;
-//   const endId = Math.round(usersArr.length / 2) + interval / 2;
-
-//   for (let i = startId; i < endId; i++) {
-//     if (usersArr[i]?.username.toLowerCase() === name.toLowerCase()) return usersArr[i].id;
-//   }
-// }
 
 onMounted(() => {
   const result = store.dispatch('getUsersAction');
