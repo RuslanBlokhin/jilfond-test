@@ -1,25 +1,43 @@
 <script setup lang="ts">
 import ProfileItem from './ProfileItem.vue';
 import BaseInput from './BaseInput.vue';
-import type { Ref } from 'vue';
 import IUser from '../models/UserModel';
+import type { Ref } from 'vue';
 import { useStore } from 'vuex';
 import { computed, ref, onMounted } from 'vue';
 
 const store = useStore();
-const firstLetter: Ref<string> = ref('');
-const filteredUsers = computed((): Array<IUser> => store.getters.getUsers);
-const users = computed((): Array<IUser> => store.state.users);
+const isNotFound: Ref<boolean> = ref(false);
+const foundUsers = computed((): Array<IUser> => store.state.foundUsers);
+const sortedUsers = computed((): Array<IUser> => store.state.sortedUsers);
 
-async function searchUsers(evt: Event) {
-  const currentName = (evt.currentTarget as HTMLInputElement).value.trim();
-  firstLetter.value = currentName[0];
+function searchUsers(evt: KeyboardEvent) {
+  store.commit('CLEAR_FOUND_USERS');
 
-  console.log(findUsersIds(currentName));
+  const currentInpitValue = (evt.currentTarget as HTMLInputElement).value;
+  const foundUsers: Array<IUser> = [];
+  const usersIds: Array<string> = [];
+
+  currentInpitValue.split(',').forEach(nameOrId => {
+    if (!isNaN(+nameOrId)) {
+      usersIds.push(nameOrId.trim());
+      store.dispatch('searchUsersByIds', usersIds);
+    } else {
+      const user = searchByName(nameOrId.trim());
+      if (user) foundUsers.push(user);
+    }
+  });
+
+  if (foundUsers.length !== 0) {
+    store.commit('SET_FOUND_USERS', foundUsers);
+    isNotFound.value = false;
+  } else {
+    isNotFound.value = true;
+  }
 }
 
-function findUsersIds(name: string): number {
-  let usersArr = [...users.value];
+function searchByName(name: string): IUser | null {
+  let usersArr = [...sortedUsers.value];
   const interval = 4;
 
   let startId;
@@ -27,7 +45,9 @@ function findUsersIds(name: string): number {
 
   checkInterval();
 
-  function checkInterval(): number {
+  function checkInterval(): IUser | null {
+    if (usersArr.length === 0) return null;
+
     startId = Math.round(usersArr.length - interval) / 2;
     endId = Math.round(usersArr.length + interval) / 2;
 
@@ -37,26 +57,32 @@ function findUsersIds(name: string): number {
     }
 
     for (let i = startId; i < endId; i++) {
-      if (usersArr[i].username.toLowerCase() === name.toLowerCase()) return usersArr[i].id;
+      if (usersArr[i].username.toLowerCase() === name.toLowerCase()) return usersArr[i];
     }
 
-    if (firstLetter.value < usersArr[startId].username[0]) {
+    if (name[0] < usersArr[startId].username[0]) {
       usersArr.splice(startId);
-
       checkInterval();
     } else {
       usersArr = usersArr.splice(endId);
-
       checkInterval();
     }
-    return 0;
+
+    return null;
   }
 
   return checkInterval();
 }
 
+function clickBackspace(evt: KeyboardEvent) {
+  const currentInpitValue = (evt.currentTarget as HTMLInputElement).value;
+  if (evt.key === 'Backspace' && foundUsers.value.length && !currentInpitValue.length) {
+    store.commit('CLEAR_FOUND_USERS');
+  }
+}
+
 onMounted(() => {
-  const result = store.dispatch('getUsersAction');
+  const result = store.dispatch('getUsers');
 });
 </script>
 
@@ -64,14 +90,15 @@ onMounted(() => {
   <aside class="sidebar">
     <div class="sidebar__search">
       <h2 class="sidebar__title">Поиск сотрудников</h2>
-      <input @keyup.enter="searchUsers" type="text" class="input" placeholder="Введите id или имя" />
+      <BaseInput @keyup.enter="searchUsers" @keyup="clickBackspace" type="text" placeholder="Введите id или имя" />
     </div>
     <div class="sidebar__search">
       <h2 class="sidebar__title">Результаты</h2>
-      <ul class="sidebar__list">
-        <ProfileItem v-for="user in filteredUsers" :key="user.id" :username="user.username" :email="user.email" />
+      <ul v-if="foundUsers.length" class="sidebar__list">
+        <ProfileItem v-for="user in foundUsers" :key="user.id" :username="user.username" :email="user.email" />
       </ul>
-      <div class="sidebar__text">Начните поиск</div>
+      <div v-else class="sidebar__text">Начните поиск</div>
+      <!-- <div v-if="isNotFound && !foundUsers.length" class="sidebar__text">Ничего не найдео</div> -->
     </div>
   </aside>
 </template>
