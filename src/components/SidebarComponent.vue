@@ -3,95 +3,23 @@ import ProfileItem from './ProfileItem.vue';
 import BaseInput from './BaseInput.vue';
 import BasePreloader from './BasePreloader.vue';
 import IUser from '../models/UserModel';
-import type { Ref } from 'vue';
 import { useStore } from 'vuex';
-import { computed, ref, onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 
 const store = useStore();
-const isNotFound: Ref<boolean> = ref(false);
 const isLoading = computed((): boolean => store.state.isLoading);
 const foundUsers = computed((): Array<IUser> => store.state.foundUsers);
-const sortedUsers = computed((): Array<IUser> => store.state.sortedUsers);
+const isNotFound = computed((): Array<IUser> => store.state.isNotFound);
 
 function searchUsers(evt: KeyboardEvent) {
-  store.commit('CLEAR_FOUND_USERS');
-  store.commit('SET_LOADING', true);
-
   const currentInpitValue = (evt.currentTarget as HTMLInputElement).value;
-  const foundUsers: Array<IUser> = [];
-  const usersIds: Array<string> = [];
-
-  currentInpitValue.split(',').forEach(nameOrId => {
-    if (!isNaN(+nameOrId)) {
-      usersIds.push(nameOrId.trim());
-    } else {
-      const user = searchByName(nameOrId.trim());
-      if (user) foundUsers.push(user);
-    }
-  });
-
-  if (usersIds.length) {
-    store.dispatch('searchUsersByIds', usersIds).then(err => {
-      if (err) alert(err);
-    });
-  }
-
-  if (foundUsers.length) {
-    store.commit('SET_FOUND_USERS', foundUsers);
-  }
-
-  if (!foundUsers.length && !usersIds.length) {
-    isNotFound.value = true;
-  } else {
-    isNotFound.value = false;
-  }
-
-  store.commit('SET_LOADING', false);
-}
-
-function searchByName(name: string): IUser | null {
-  let usersArr = [...sortedUsers.value];
-  const interval = 4;
-
-  let startId;
-  let endId;
-
-  checkInterval();
-
-  function checkInterval(): IUser | null {
-    if (usersArr.length === 0) return null;
-
-    startId = Math.round(usersArr.length - interval) / 2;
-    endId = Math.round(usersArr.length + interval) / 2;
-
-    if (usersArr.length <= interval) {
-      startId = 0;
-      endId = usersArr.length;
-    }
-
-    for (let i = startId; i < endId; i++) {
-      if (usersArr[i].username.toLowerCase() === name.toLowerCase()) return usersArr[i];
-    }
-
-    if (name[0] < usersArr[startId].username[0]) {
-      usersArr.splice(startId);
-      checkInterval();
-    } else {
-      usersArr = usersArr.splice(endId);
-      checkInterval();
-    }
-
-    return null;
-  }
-
-  return checkInterval();
+  if (evt.currentTarget) store.dispatch('searchUsers', currentInpitValue);
 }
 
 function clickBackspace(evt: KeyboardEvent) {
   const currentInpitValue = (evt.currentTarget as HTMLInputElement).value;
   if (evt.key === 'Backspace' && foundUsers.value.length && !currentInpitValue.length) {
-    store.commit('CLEAR_FOUND_USERS');
-    store.commit('CLEAR_CURR_PROFILE');
+    store.dispatch('clearState');
   }
 }
 
