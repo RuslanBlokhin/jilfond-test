@@ -69,8 +69,6 @@ const store = createStore({
 
         const { data } = await $http.get(url);
 
-        console.log(data);
-
         commit('SET_FOUND_USERS', data);
       } catch (error: any) {
         if (error.response) {
