@@ -1,20 +1,27 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import IUser from '../models/UserModel';
+
+const store = useStore();
+const currProfile = computed((): IUser => store.state.currProfile);
+</script>
 
 <template>
   <div class="profile">
-    <!-- <div class="profile__full" hidden>
+    <div v-if="currProfile" class="profile__full">
       <div class="profile__image-wrapper">
         <img src="../assets/images/bg.png" alt="cover" class="profile__image" />
       </div>
       <div class="profile__info">
-        <h2 class="profile__name">Ervin Howell</h2>
+        <h2 class="profile__name">{{ currProfile.name }}</h2>
         <div class="profile__info-block email">
           <h3 class="profile__info-block-key">email:</h3>
-          <div class="profile__info-block-value">Shanna@melissa.tv</div>
+          <div class="profile__info-block-value">{{ currProfile.email }}</div>
         </div>
         <div class="profile__info-block">
           <h3 class="profile__info-block-key">phone:</h3>
-          <div class="profile__info-block-value">010-692-6593 x09125</div>
+          <div class="profile__info-block-value">{{ currProfile.phone }}</div>
         </div>
         <div class="profile__about">
           <h2 class="profile__about-title">О себе:</h2>
@@ -25,17 +32,16 @@
             nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit
             anim id est laborum.
           </p>
-          <p class="profile__about-text empty">Выберите сотрудника, чтобы посмотреть его профиль</p>
         </div>
       </div>
-    </div> -->
-    <div class="profile__empty">Выберите сотрудника, чтобы посмотреть его профиль</div>
+    </div>
+    <div v-else class="profile__empty">Выберите сотрудника, чтобы посмотреть его профиль</div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .profile {
-  width: 77%;
+  width: 78%;
   height: 100%;
   padding: 30px 30px 30px 21px;
 
@@ -53,7 +59,7 @@
     width: 44%;
   }
   &__info {
-    width: 45%;
+    width: 51%;
   }
   &__name {
     margin-bottom: 10px;

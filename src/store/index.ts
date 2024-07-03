@@ -6,6 +6,8 @@ const store = createStore({
   state: {
     foundUsers: [] as Array<IUser>,
     sortedUsers: [] as Array<IUser>,
+    currProfile: null as IUser | null,
+    isLoading: false,
   },
   mutations: {
     SET_FOUND_USERS(state, payload: Array<IUser>) {
@@ -17,6 +19,15 @@ const store = createStore({
     SET_SORTED_USERS(state, payload: Array<IUser>) {
       state.sortedUsers = payload;
     },
+    SET_CURR_PROFILE(state, payload: IUser) {
+      state.currProfile = payload;
+    },
+    CLEAR_CURR_PROFILE(state) {
+      state.currProfile = null;
+    },
+    SET_LOADING(state, payload: boolean) {
+      state.isLoading = payload;
+    },
   },
   actions: {
     async getUsers({ commit }) {
@@ -27,8 +38,21 @@ const store = createStore({
         );
 
         commit('SET_SORTED_USERS', sortingData);
-        // console.log(sortingData);
-      } catch (error) {}
+      } catch (error: any) {
+        if (error.response) {
+          console.log(`Статус: ${error.response.status}`);
+
+          if (error.response.status >= 400 && error.response.status < 500) return 'Ресурс не найден';
+          if (error.response.status >= 500) return 'Ошибка сервера';
+        } else if (error.request) {
+          console.log(error);
+
+          return `Неверные параметры запроса: ${error.message}`;
+        } else {
+          return `Ошибка: ${error.message}`;
+        }
+        console.error(error);
+      }
     },
     async searchUsersByIds({ commit }, ids: Array<number>) {
       try {
@@ -40,15 +64,31 @@ const store = createStore({
         }
 
         const { data } = await $http.get(url);
-        console.log(data);
 
         commit('SET_FOUND_USERS', data);
-      } catch (error) {}
+      } catch (error: any) {
+        if (error.response) {
+          console.log(`Статус: ${error.response.status}`);
+
+          if (error.response.status >= 400 && error.response.status < 500) return 'Ресурс не найден';
+          if (error.response.status >= 500) return 'Ошибка сервера';
+        } else if (error.request) {
+          console.log(error);
+
+          return `Неверные параметры запроса: ${error.message}`;
+        } else {
+          return `Ошибка: ${error.message}`;
+        }
+        console.error(error);
+      }
+    },
+    searchCurrProfile({ state, commit }, id: string) {
+      const currProfile = state.foundUsers.find(user => user.id === +id);
+
+      commit('SET_CURR_PROFILE', currProfile);
     },
   },
-  getters: {
-    // getUsers: state => (name: string) => state.users.filter(user => user.username.includes(name)),
-  },
+  getters: {},
 });
 
 export default store;
