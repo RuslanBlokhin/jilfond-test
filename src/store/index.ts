@@ -37,6 +37,8 @@ const store = createStore({
     async getUsers({ commit }) {
       try {
         const { data } = await $http.get('');
+
+        // сортируем, чтобы реализовать алгоритм поиска по слову
         const sortingData = data.sort((a: { username: string }, b: { username: string }) =>
           a.username.localeCompare(b.username),
         );
@@ -113,6 +115,8 @@ const store = createStore({
             function checkInterval(): IUser | null {
               if (usersArr.length === 0) return null;
 
+              // поиск по имени происходит по алгоритму:
+              // 1. берем интервал в середине массива
               startId = Math.round(usersArr.length - interval) / 2;
               endId = Math.round(usersArr.length + interval) / 2;
 
@@ -121,10 +125,13 @@ const store = createStore({
                 endId = usersArr.length;
               }
 
+              // 2. проверяем есть ли там искомое имя
               for (let i = startId; i < endId; i++) {
                 if (usersArr[i].username.toLowerCase() === nameOrId.toLowerCase()) return usersArr[i];
               }
 
+              // 3. если нет, то смотрим с какой стороны по алфавиту нужная нам первая буква искомого слова,
+              //    ненужную сторону отбрасываем и возвращаемся к первому пункту
               if (nameOrId[0] < usersArr[startId].username[0]) {
                 usersArr.splice(startId);
                 checkInterval();
