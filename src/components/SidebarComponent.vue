@@ -31,7 +31,9 @@ function searchUsers(evt: KeyboardEvent) {
   });
 
   if (usersIds.length) {
-    store.dispatch('searchUsersByIds', usersIds);
+    store.dispatch('searchUsersByIds', usersIds).then(err => {
+      if (err) alert(err);
+    });
   }
 
   if (foundUsers.length) {
